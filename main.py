@@ -1,4 +1,4 @@
-from datasetHelper import loadDataset, changeDimensionality
+from datasetHelper import loadDataset, changeDimensionality, hotEncoding
 
 #Image height and width
 img_h, img_w = 28, 28
@@ -12,3 +12,10 @@ X_test = changeDimensionality(X_test, img_h, img_w)
 
 print("Training Dataset Dimensions", X_train.shape)
 print("Test Dataset Dimensions", X_test.shape)
+
+#Performing hot encoding on y-labels
+y_train = hotEncoding(y_train)
+y_test = hotEncoding(y_test)
+
+print("Train Label Dimensions", y_train.shape)
+print("Test Label Dimensions", y_test.shape)

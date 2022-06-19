@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelBinarizer
 
 #Loading the MNIST dataset
 def loadDataset(flatten=False):
@@ -28,3 +28,9 @@ def changeDimensionality(X, img_h, img_w):
     X = X.reshape((X.shape[0], img_h * img_w))
 
     return X
+
+#Function to perform one-hot-encoding
+def hotEncoding(labels):
+    labelBinaryObj = LabelBinarizer()
+
+    return labelBinaryObj.fit_transform(labels)
