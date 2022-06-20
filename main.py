@@ -8,6 +8,13 @@ sess = tf.InteractiveSession()
 #Image height and width
 img_h, img_w = 28, 28
 
+batch_size = 128
+epochs=14
+dropout_prob = 0.6
+training_accuracy = []
+training_loss = []
+testing_accuracy = []
+
 #Loading and formatting the dataset
 X_train, y_train, X_val, y_val, X_test, y_test = loadDataset()
 
@@ -75,3 +82,27 @@ accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 
 #Training Parameters
+sess.run(tf.global_variables_initializer())
+for epoch in range(epochs):
+    arr = np.arange(X_train.shape[0])
+    np.random.shuffle(arr)
+
+    for index in range(0, X_train.shape[0],batch_size):
+        sess.run(optmizer, {input_X : X_train[arr[index:index+batch_size]], input_Y : y_train[arr[index: index+batch_size]], prob:dropout_prob})
+        training_accuracy.append(sess.run(accuracy, feed_dict={
+            input_X:X_train,
+            input_Y:y_train,
+            prob:1
+        }))
+
+        training_loss.append(sess.run(loss, {
+            input_X : X_train,
+            input_Y : y_train,
+            prob : 1
+        }))
+
+        testing_accuracy.append(accuracy_score(y_test.argmax(1), sess.run(pred_y, {
+            input_X : X_test,
+            prob  :1,
+        }).argmax(1)))
+        print("Epoch:{0}, Train loss: {1:.2f} Train acc: {2:.3f}, Test acc:{3:.3f}".format(epoch,training_loss[epoch],training_accuracy[epoch],testing_accuracy[epoch]))
