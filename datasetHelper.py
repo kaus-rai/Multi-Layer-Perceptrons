@@ -1,36 +1,53 @@
-import tensorflow as tf
+import torch
 import numpy as np
-from sklearn.preprocessing import LabelBinarizer
+from torchvision import datasets
+import torchvision.transforms as transforms
+from torch.utils.data.sampler import SubsetRandomSampler
+import matplotlib.pyplot as plt
 
 #Loading the MNIST dataset
-def loadDataset(flatten=False):
-    mnistDataset = tf.keras.datasets.mnist
-    (X_train, y_train), (X_test, y_test) =  mnistDataset.load_data()
+def loadDataset():
+    workers = 0
+    batch_size = 20
+    valid_size = 0.2
 
-    #Performing normalization on X
-    X_train = X_train.astype(float)/255
-    X_test = X_train.astype(float)/255
+    transform = transforms.ToTensor()
 
-    #Creating a validaton dataset
-    X_train, X_val = X_train[:-10000], X_train[-10000:]
-    y_train, y_val = y_train[:-10000], y_train[-10000:]
+    train_data = datasets.MNIST(root='data', train=True, download=True, transform=transform)
+    test_data = datasets.MNIST(root='data', train=False, download=True, transform=transform)
 
-    if flatten:
-        X_train = X_train.reshape([X_train.shape[0], -1])
-        X_val = X_val.reshape([X_val.shape[0], -1])
-        X_test = X_test.reshape([X_test.shape[0], -1])
+    #Creating the validation Dataset
+    num_train = len(train_data)
+    indices = list(range(num_train))
 
-    return X_train, y_train, X_val, y_val, X_test, y_test
+    np.random.shuffle(indices)
+    split = int(np.floor(valid_size*num_train))
+    train_idx, valid_idx = indices[split:], indices[:split]
 
+    #Getting the training and test data
+    train_sampler = SubsetRandomSampler(train_idx)
+    valid_sampler = SubsetRandomSampler(valid_idx)
 
-#Function to change the dimensions of the image
-def changeDimensionality(X, img_h, img_w):
-    X = X.reshape((X.shape[0], img_h * img_w))
+    #Preparing the data loader
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, sampler=train_sampler, num_workers=workers)
+    valid_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, sampler=valid_sampler, num_workers=workers)
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, sampler=valid_sampler, num_workers=workers)
 
-    return X
+    print("Train Loader", train_loader)
 
-#Function to perform one-hot-encoding
-def hotEncoding(labels):
-    labelBinaryObj = LabelBinarizer()
+    return train_loader, valid_loader, test_loader
 
-    return labelBinaryObj.fit_transform(labels)
+# def visualizeDataset(trainData):
+#     #Obtaining One batch of training images
+#     dataIter = iter(trainData)
+#     print("Data Iter", dataIter)
+#     images, labels = dataIter.next()
+#     images = images.numpy()
+
+#     #Visualizing the dataset
+#     fig = plt.figure(figuresize=(25,4))
+#     for idx in np.arange(20):
+#         ax = fig.add_subplot(2, 20/2, idx+1, xticks=[], yticks=[])
+#         ax.imshow(np.squeeze(images[idx]), cmap='grey')
+#         ax.set_title(str(labels[idx].items()))
+
